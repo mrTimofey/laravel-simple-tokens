@@ -26,5 +26,8 @@ Use `MrTimofey\LaravelSimpleTokens\AuthenticatesUsers` trait with your auth cont
 		remember_token: 'remember token string or NULL if request does not have a "remember" flag'
 	}
 	```
+	This method generates `api_token` and puts it to cache with `cache()->set('prefix:' . $token, $user_id, $ttl)`.
+	Also regenerates user `remember_token`.
+	TTL is configured in `simple_tokens.ttl`.
 * logout - deletes `api_token` from cache.
 * user - returns user data JSON.
