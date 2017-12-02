@@ -10,6 +10,7 @@ class ServiceProvider extends Base
 {
     public function boot(): void
     {
+        $this->mergeConfigFrom(__DIR__ . '/../config.php', 'simple_tokens');
         $this->publishes([__DIR__ . '/../config.php' => config_path('simple_tokens.php')], 'config');
         $auth = $this->app->make('auth');
         $auth->provider('simple', function ($app, array $config) {
