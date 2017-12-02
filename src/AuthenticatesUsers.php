@@ -21,17 +21,17 @@ trait AuthenticatesUsers
         return $this->guard()->getProvider();
     }
 
-    protected function generateToken()
+    protected function generateToken(): string
     {
         return str_random(60);
     }
 
-    public function user()
+    public function user(): JsonResponse
     {
         return new JsonResponse($this->guard()->user());
     }
 
-    public function authenticate(Request $req)
+    public function authenticate(Request $req): JsonResponse
     {
         $provider = $this->provider();
         /** @var Authenticatable $model */
@@ -52,7 +52,7 @@ trait AuthenticatesUsers
         ]);
     }
 
-    public function logout(Request $req)
+    public function logout(): void
     {
         if ($token = $this->guard()->getTokenForRequest()) {
             cache()->delete(config('simple_tokens.cache_prefix') . $token);

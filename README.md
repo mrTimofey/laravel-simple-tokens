@@ -1,5 +1,10 @@
 Simple token and cache based user authentication and authorization.
 
+## Requirements
+
+* PHP 7.1
+* Laravel 5
+
 ## Install
 
 ```bash

@@ -3,13 +3,21 @@
   "description": "Simple token and cache based user authentication and authorization",
   "type": "library",
   "license": "MIT",
+  "keywords": [
+    "auth",
+    "token",
+    "simple",
+    "laravel"
+  ],
   "authors": [
     {
       "name": "Timofey",
       "email": "timoxa17@gmail.com"
     }
   ],
-  "require": {},
+  "require": {
+    "php": ">=7.1.0"
+  },
   "autoload": {
     "psr-4": {
       "MrTimofey\\LaravelSimpleTokens\\": "src/"

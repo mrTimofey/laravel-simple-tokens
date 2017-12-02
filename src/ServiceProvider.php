@@ -8,7 +8,7 @@ use Illuminate\Support\ServiceProvider as Base;
 
 class ServiceProvider extends Base
 {
-    public function boot()
+    public function boot(): void
     {
         $this->publishes([__DIR__ . '/../config.php' => config_path('simple_tokens.php')], 'config');
         $auth = $this->app->make('auth');
