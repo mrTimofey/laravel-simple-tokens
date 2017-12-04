@@ -36,9 +36,16 @@ trait AuthenticatesUsers
         $provider = $this->provider();
         /** @var Authenticatable $model */
         $model = $provider->createModel();
-        $user = $provider->retrieveByCredentials($req->only([
-            'login', 'email', 'password', $model->getRememberTokenName()
-        ]));
+        $rememberName = $model->getRememberTokenName();
+        if ($req->has($rememberName)) {
+            $user = $provider->retrieveByCredentials($req->only([$rememberName]));
+        } else {
+            $credentials = $req->only(['login', 'email', 'password']);
+            $user = $provider->retrieveByCredentials($credentials);
+            if ($user && !$provider->validateCredentials($user, $credentials)) {
+                $user = null;
+            }
+        }
         if (!$user) {
             throw new BadRequestHttpException('Bad credentials');
         }
