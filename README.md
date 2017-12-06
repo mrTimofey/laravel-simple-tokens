@@ -11,7 +11,7 @@ Simple token and cache based user authentication and authorization.
 composer require mr-timofey/laravel-simple-tokens
 ```
 
-Add `MrTimofey\LaravelSimpleTokens\ServiceProvider` to your `app.providers` config.
+**For Laravel <= 5.4** add `MrTimofey\LaravelSimpleTokens\ServiceProvider` to your `app.providers` config.
 
 ```bash
 php artisan vendor:publish --provider="MrTimofey\LaravelSimpleTokens\ServiceProvider"
