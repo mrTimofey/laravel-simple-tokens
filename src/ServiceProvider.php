@@ -15,7 +15,7 @@ class ServiceProvider extends Base
         $auth = $this->app->make('auth');
         $auth->provider('simple', function ($app, array $config) {
             /** @var Application $app */
-            return new SimpleProvider($app->make('hash'), $config['model']);
+            return new SimpleProvider($app->make('hash'), $config['model'], $config);
         });
     }
 }
