@@ -1,5 +1,8 @@
 Simple token and cache based user authentication and authorization.
 
+You are tired of the mind-blowing, unnecessarily complex Passport OAuth?
+Then that is just the package you need.
+
 ## Features
 
 * Fully Eloquent compatible auth driver
