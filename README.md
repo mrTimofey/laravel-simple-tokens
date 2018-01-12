@@ -2,12 +2,13 @@ Simple token and cache based user authentication and authorization.
 
 ## Features
 
+* Fully Eloquent compatible auth driver
 * Cache based token authorization with configurable TTL
-* Additional query restriction configuration for user provider using simple `where/where in` clauses or model scopes
+* Additional query restriction configuration per each provider using simple `where/where in` clauses or model scopes
 	(for example, you can restrict authorization only for particular user roles)
 * Controller trait to maintain authentication/authorization/logout logic for your application out-of-the-box
-	(but you still have to define routes)
-* Multiple guards support
+	(but you still have to define controller and routes)
+* Multiple independent guards support
 
 ## Requirements
 
@@ -50,9 +51,7 @@ Use `MrTimofey\LaravelSimpleTokens\AuthenticatesUsers` trait with your auth cont
 
 Also you can define a `$guard` class field to use any guard other than default one (`api`).
 
-### User query restrictions
-
-You can add query restrictions to a provider configuration in `auth.providers` config:
+### Auth provider configuration
 
 ```php
 // config/auth.php
@@ -62,22 +61,43 @@ return [
 	// ...
 
 	'providers' => [
-		'poviderName' => [
+		// Simple example (suitable for most cases)
+		'simple' => [
+			'driver' => 'simple',
+			'model' => App\User::class
+		],
+	
+		// Advanced example
+		'advanced' => [
 			'driver' => 'simple',
 			'model' => App\User::class,
+			
+			// Query modifiers
 			'only' => [
 				// only users with email = example@email.com
 				'email' => 'example@email.com',
 				// only users with ID 1, 2 or 3
 				'id' => [1, 2, 3]
 			],
-			// any eloquent model scope
+			
+			// Any model scope
 			'scope' => 'scopeName',
 			// ...or
 			'scope' => [
-				'someScope',
+				'scopeName',
 				'scopeWithArguments' => ['arg1', 'arg2']
-			]
+			],
+			
+			// Cache prefix can be configured if you want to use multiple independent providers.
+			// This will allow clients to have multiple tokens (one per each unique prefix).
+			// On the other hand, you can restrict users to have a sinlgle token by providing same prefix.
+			// Default: no prefix
+			// IMPORTANT: this prefix will will be appended to the `simple_tokens.cache_prefix` config entry.
+			'cache_prefix' => '',
+
+			// Token expiration time in minutes.
+			// You can overwrite default value from the `simple_tokens.token_ttl` config entry here.
+			'token_ttl' => 60
 		]
 	],
 

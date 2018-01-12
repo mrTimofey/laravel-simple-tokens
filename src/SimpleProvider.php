@@ -3,17 +3,28 @@
 namespace MrTimofey\LaravelSimpleTokens;
 
 use Illuminate\Auth\EloquentUserProvider;
+use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Contracts\Cache\Repository as CacheContract;
 use Illuminate\Contracts\Hashing\Hasher as HasherContract;
 use Illuminate\Database\Eloquent\Builder;
 
 class SimpleProvider extends EloquentUserProvider
 {
+    /**
+     * @var array
+     */
     protected $config;
 
-    public function __construct(HasherContract $hasher, string $model, array $config)
+    /**
+     * @var CacheContract
+     */
+    protected $cache;
+
+    public function __construct(HasherContract $hasher, CacheContract $cache, array $config)
     {
-        parent::__construct($hasher, $model);
+        parent::__construct($hasher, $config['model']);
         $this->config = $config;
+        $this->cache = $cache;
     }
 
     protected function newModelQuery(): Builder
@@ -48,6 +59,32 @@ class SimpleProvider extends EloquentUserProvider
         }
 
         return $query;
+    }
+
+    public function getCacheKey(string $token): string
+    {
+        return $this->config['cache_prefix'] . $token;
+    }
+
+    /**
+     * Forget token.
+     * @param string $token
+     */
+    public function forget(string $token): void
+    {
+        $this->cache->forget($this->getCacheKey($token));
+    }
+
+    /**
+     * Create new token for a model instance and store it in cache.
+     * @param Authenticatable $user
+     * @return string
+     */
+    public function issueToken(Authenticatable $user): string
+    {
+        $token = str_random(60);
+        $this->cache->put($this->getCacheKey($token), $user->getAuthIdentifier(), $this->config['token_ttl']);
+        return $token;
     }
 
     /**
@@ -86,7 +123,7 @@ class SimpleProvider extends EloquentUserProvider
     public function retrieveByCredentials(array $credentials)
     {
         if (!empty($credentials['api_token'])) {
-            if ($id = cache(config('simple_tokens.cache_prefix') . $credentials['api_token'])) {
+            if ($id = $this->cache->get($this->getCacheKey($credentials['api_token']))) {
                 return $this->retrieveById($id);
             }
             return null;

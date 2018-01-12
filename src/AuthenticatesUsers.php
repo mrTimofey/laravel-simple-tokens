@@ -4,7 +4,6 @@ namespace MrTimofey\LaravelSimpleTokens;
 
 use Illuminate\Auth\TokenGuard;
 use Illuminate\Contracts\Auth\Authenticatable;
-use Illuminate\Contracts\Auth\Guard;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
@@ -18,12 +17,8 @@ trait AuthenticatesUsers
 
     protected function provider(): SimpleProvider
     {
+        /** @noinspection PhpIncompatibleReturnTypeInspection */
         return $this->guard()->getProvider();
-    }
-
-    protected function generateToken(): string
-    {
-        return str_random(60);
     }
 
     public function user(): JsonResponse
@@ -31,6 +26,13 @@ trait AuthenticatesUsers
         return new JsonResponse($this->guard()->user());
     }
 
+    /**
+     * @param Request $req
+     * @return JsonResponse
+     * @throws \Symfony\Component\HttpKernel\Exception\BadRequestHttpException
+     * @throws \Exception
+     * @throws \Psr\SimpleCache\InvalidArgumentException
+     */
     public function authenticate(Request $req): JsonResponse
     {
         $provider = $this->provider();
@@ -49,20 +51,18 @@ trait AuthenticatesUsers
         if (!$user) {
             throw new BadRequestHttpException('Bad credentials');
         }
-        $token = $this->generateToken();
-        cache()->set(config('simple_tokens.cache_prefix') . $token, $user->getAuthIdentifier(), config('simple_tokens.token_ttl'));
         $provider->updateRememberToken($user, str_random(100));
         return new JsonResponse([
             'user' => $user,
-            'api_token' => $token,
-            $model->getRememberTokenName() => $req->get('remember', false) ? $user->getRememberToken() : null
+            'api_token' => $provider->issueToken($user),
+            $rememberName => $req->get('remember', false) ? $user->getRememberToken() : null
         ]);
     }
 
     public function logout(): void
     {
         if ($token = $this->guard()->getTokenForRequest()) {
-            cache()->delete(config('simple_tokens.cache_prefix') . $token);
+            $this->provider()->forget($token);
         }
     }
 }
