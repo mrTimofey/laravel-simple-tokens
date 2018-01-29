@@ -1,6 +1,7 @@
 Simple token and cache based user authentication and authorization.
 
 You are tired of the mind-blowing, unnecessarily complex Passport OAuth?
+You want something configurable, manageable and simple?
 Then that is just the package you need.
 
 ## Features
