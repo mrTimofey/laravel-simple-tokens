@@ -96,7 +96,7 @@ return [
 			// This will allow clients to have multiple tokens (one per each unique prefix).
 			// On the other hand, you can restrict users to have a sinlgle token by providing same prefix.
 			// Default: no prefix
-			// IMPORTANT: this prefix will will be appended to the `simple_tokens.cache_prefix` config entry.
+			// IMPORTANT: this prefix will be appended to the `simple_tokens.cache_prefix` config entry.
 			'cache_prefix' => '',
 
 			// Token expiration time in minutes.
