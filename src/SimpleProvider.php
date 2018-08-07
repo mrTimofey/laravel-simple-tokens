@@ -37,8 +37,7 @@ class SimpleProvider extends EloquentUserProvider
                 if (\is_int($k)) {
                     $scope = $v;
                     $args = [];
-                }
-                else {
+                } else {
                     $scope = $k;
                     $args = $v;
                 }
@@ -51,8 +50,7 @@ class SimpleProvider extends EloquentUserProvider
             foreach ($only as $k => $v) {
                 if (\is_int($k)) {
                     $query->where($v, true);
-                }
-                else {
+                } else {
                     \is_array($v) ? $query->whereIn($k, $v) : $query->where($k, $v);
                 }
             }
