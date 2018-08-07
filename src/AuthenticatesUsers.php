@@ -71,7 +71,7 @@ trait AuthenticatesUsers
             throw new BadRequestHttpException('Bad credentials');
         }
         $provider->updateRememberToken($user, str_random(100));
-        return $this->authenticationReponse($user, $provider->issueToken($user), $req);
+        return $this->authenticationResponse($user, $provider->issueToken($user), $req);
     }
 
     public function logout(): void
