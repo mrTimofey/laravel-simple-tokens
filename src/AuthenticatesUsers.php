@@ -21,9 +21,28 @@ trait AuthenticatesUsers
         return $this->guard()->getProvider();
     }
 
+    /**
+     * User data for JSON response. Override this to customize.
+     * @param Authenticatable $user
+     * @return mixed data about to send within a JSON response
+     */
+    protected function userData(Authenticatable $user)
+    {
+        return $user;
+    }
+
+    protected function authenticationResponse(Authenticatable $user, string $authToken, Request $req): JsonResponse
+    {
+        return new JsonResponse([
+            'user' => $this->userData($user),
+            'api_token' => $authToken,
+            $user->getRememberTokenName() => $req->get('remember', false) ? $user->getRememberToken() : null
+        ]);
+    }
+
     public function user(): JsonResponse
     {
-        return new JsonResponse($this->guard()->user());
+        return new JsonResponse($this->userData($this->guard()->user()));
     }
 
     /**
@@ -52,11 +71,7 @@ trait AuthenticatesUsers
             throw new BadRequestHttpException('Bad credentials');
         }
         $provider->updateRememberToken($user, str_random(100));
-        return new JsonResponse([
-            'user' => $user,
-            'api_token' => $provider->issueToken($user),
-            $rememberName => $req->get('remember', false) ? $user->getRememberToken() : null
-        ]);
+        return $this->authenticationReponse($user, $provider->issueToken($user), $req);
     }
 
     public function logout(): void
