@@ -7,6 +7,13 @@ use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Cache\Repository as CacheContract;
 use Illuminate\Contracts\Hashing\Hasher as HasherContract;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
+use Psr\SimpleCache\InvalidArgumentException;
+use function call_user_func_array;
+use function count;
+use function is_array;
+use function is_int;
 
 class SimpleProvider extends EloquentUserProvider
 {
@@ -27,31 +34,31 @@ class SimpleProvider extends EloquentUserProvider
         $this->cache = $cache;
     }
 
-    protected function newModelQuery(): Builder
+    protected function newModelQuery($model = null): Builder
     {
-        $query = $this->createModel()->newQuery();
+        $query = ($model ?? $this->createModel())->newQuery();
 
         if (!empty($this->config['scope'])) {
             $scopes = (array)$this->config['scope'];
             foreach ($scopes as $k => $v) {
-                if (\is_int($k)) {
+                if (is_int($k)) {
                     $scope = $v;
                     $args = [];
                 } else {
                     $scope = $k;
                     $args = $v;
                 }
-                \call_user_func_array([$query, $scope], $args);
+                call_user_func_array([$query, $scope], $args);
             }
         }
 
         if (!empty($this->config['only'])) {
             $only = (array)$this->config['only'];
             foreach ($only as $k => $v) {
-                if (\is_int($k)) {
+                if (is_int($k)) {
                     $query->where($v, true);
                 } else {
-                    \is_array($v) ? $query->whereIn($k, $v) : $query->where($k, $v);
+                    is_array($v) ? $query->whereIn($k, $v) : $query->where($k, $v);
                 }
             }
         }
@@ -80,16 +87,14 @@ class SimpleProvider extends EloquentUserProvider
      */
     public function issueToken(Authenticatable $user): string
     {
-        $token = str_random(60);
+        $token = Str::random(60);
         $this->cache->put($this->getCacheKey($token), $user->getAuthIdentifier(), $this->config['token_ttl']);
         return $token;
     }
 
-    /**
-     * @inheritdoc
-     */
     public function retrieveById($identifier)
     {
+        /** @var Model|Authenticatable $model */
         $model = $this->createModel();
 
         return $this->newModelQuery()
@@ -102,6 +107,7 @@ class SimpleProvider extends EloquentUserProvider
      */
     public function retrieveByToken($identifier, $token)
     {
+        /** @var Model|Authenticatable $model */
         $model = $this->createModel();
 
         $model = $this->newModelQuery()->where($model->getAuthIdentifierName(), $identifier)->first();
@@ -116,7 +122,9 @@ class SimpleProvider extends EloquentUserProvider
     }
 
     /**
-     * @inheritdoc
+     * @param array $credentials
+     * @return Authenticatable|Builder|Model|object|null
+     * @throws InvalidArgumentException
      */
     public function retrieveByCredentials(array $credentials)
     {
@@ -127,8 +135,8 @@ class SimpleProvider extends EloquentUserProvider
             return null;
         }
 
-        if (empty($credentials) || (\count($credentials) === 1 && array_key_exists('password', $credentials))) {
-            return;
+        if (empty($credentials) || (count($credentials) === 1 && array_key_exists('password', $credentials))) {
+            return null;
         }
 
         // First we will add each credential element to the query as a where clause.
@@ -137,7 +145,7 @@ class SimpleProvider extends EloquentUserProvider
         $query = $this->newModelQuery();
 
         foreach ($credentials as $key => $value) {
-            if (!str_contains($key, 'password')) {
+            if (!Str::contains($key, 'password')) {
                 $query->where($key, $value);
             }
         }

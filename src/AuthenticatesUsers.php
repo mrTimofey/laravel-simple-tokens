@@ -1,17 +1,20 @@
-<?php
+<?php /** @noinspection PhpUnused */
 
 namespace MrTimofey\LaravelSimpleTokens;
 
+use Exception;
 use Illuminate\Auth\TokenGuard;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 trait AuthenticatesUsers
 {
     protected function guard(): TokenGuard
     {
+        /** @noinspection PhpIncompatibleReturnTypeInspection */
         return auth($this->guard ?? 'api');
     }
 
@@ -48,9 +51,8 @@ trait AuthenticatesUsers
     /**
      * @param Request $req
      * @return JsonResponse
-     * @throws \Symfony\Component\HttpKernel\Exception\BadRequestHttpException
-     * @throws \Exception
-     * @throws \Psr\SimpleCache\InvalidArgumentException
+     * @throws BadRequestHttpException
+     * @throws Exception
      */
     public function authenticate(Request $req): JsonResponse
     {
@@ -70,7 +72,7 @@ trait AuthenticatesUsers
         if (!$user) {
             throw new BadRequestHttpException('Bad credentials');
         }
-        $provider->updateRememberToken($user, str_random(100));
+        $provider->updateRememberToken($user, Str::random(100));
         return $this->authenticationResponse($user, $provider->issueToken($user), $req);
     }
 
